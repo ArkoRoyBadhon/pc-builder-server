@@ -17,17 +17,23 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+
+
 const run = async () => {
   try {
     const db = client.db("pc-builder");
     const productCollection = db.collection("products");
+
+    function capitalizeWord(word) {
+      return word.toUpperCase();
+    }
 
     app.get("/randomproducts", async (req, res) => {
       const cursor = productCollection.find({});
       const product = await cursor.toArray();
 
       // res.send({ status: true, data: product });
-      const numberOfElementsToSelect = 3;
+      const numberOfElementsToSelect = 1;
       const result = [];
       const arrLength = product.length;
 
@@ -41,6 +47,35 @@ const run = async () => {
       res.send(result);
     });
 
+    app.get("/allproducts", async (req, res) => {
+      const { category } = req.query;
+    
+      if (category && category.length > 0) {
+        const modified = category.split("-").map(capitalizeWord).join(" ");
+        try {
+          const cursor = await productCollection.find({ category: modified });
+          const product = await cursor.toArray();
+    
+          res.send(product);
+        } catch (error) {
+          res.status(500).json({ error: "Error fetching products." });
+        }
+      } else {
+        try {
+          const cursor = await productCollection.find({});
+          const product = await cursor.toArray();
+    
+          res.send(product);
+        } catch (error) {
+          console.error("Error fetching products:", error);
+          res.status(500).json({ error: "Error fetching products." });
+        }
+      }
+    });
+
+    
+    
+
     app.post("/product", async (req, res) => {
       const product = req.body;
 
@@ -53,7 +88,6 @@ const run = async () => {
       const id = req.params.id;
 
       const result = await productCollection.findOne({ _id: ObjectId(id) });
-      console.log(result);
       res.send(result);
     });
   } finally {
