@@ -33,7 +33,7 @@ const run = async () => {
       const product = await cursor.toArray();
 
       // res.send({ status: true, data: product });
-      const numberOfElementsToSelect = 1;
+      const numberOfElementsToSelect = 6;
       const result = [];
       const arrLength = product.length;
 
